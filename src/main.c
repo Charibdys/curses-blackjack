@@ -1,3 +1,5 @@
+#include <pcg_variants.h>
+#include <time.h>
 #include "include/display.h"
 #include "include/game.h"
 
@@ -8,6 +10,12 @@
 
 int main(int argc, char *argv[])
 {
+    // Init and seed RNG
+    pcg32_random_t rng;
+    pcg32_srandom_r(&rng, time(NULL) ^ (intptr_t)&printf, (intptr_t)&printTitle);
+
+
+
     MEVENT event;
     int choice = 0;
 
@@ -22,7 +30,7 @@ int main(int argc, char *argv[])
         switch(choice)
         {
             case START:
-                gameLoop();
+                gameLoop(&rng);
                 break;
             case OPTIONS:
                 mvprintw(2, 1, "Choice %d has not been implemented", choice);

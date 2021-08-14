@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-g
 CFDEBUG=-Wall -g -DDebug -pedantic
-LDFLAGS=-lncurses
+LDFLAGS=-lncurses -l:libpcg_random.a
 TARGET=cursejack
 
 OBJ_DIR=./obj
