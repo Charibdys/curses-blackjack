@@ -2,11 +2,9 @@
 
 The game of Blackjack implemented in C with a curses interface
 
-[ TOC ]
+[[_TOC_]]
 
 ## Dependencies
-Ncurses
-
 
 ## Building
 
@@ -38,5 +36,3 @@ Using the font 'DOOM' by Frans P. de Vries <fpv@xymph.iaf.nl>, 18 Jun 1996
 NCurses, used here to make the text user interface, is currently maintained by Thomas E. Dickey <dickey@invisible-island.net>
 
 The PCG random number generator was sourced from www.pcg-random.org
-
-
