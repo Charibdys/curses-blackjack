@@ -26,7 +26,7 @@ build:
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(OBJ_DIR)
 
-debug: CFLAGS += CFDEBUG
+debug: $(CFLAGS) += $(CFDEBUG)
 debug: all
 
 clean:
