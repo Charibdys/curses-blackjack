@@ -2,11 +2,14 @@
 
 The game of Blackjack implemented in C with a curses interface
 
-[[_TOC_]]
-
 ## Dependencies
 
+- pcg-random, specifically the [pcg-c](https://github.com/imneme/pcg-c/tree/master/include) library
+- ncurses
+
 ## Building
+
+Run `make all` to build the binary.
 
 ## TODO
 - [x] Basic card and deck functionality
@@ -15,7 +18,7 @@ The game of Blackjack implemented in C with a curses interface
 - [X] Makefile
 - [X] Random Number Generator and shuffle functions
 - [ ] Game rules and logic
-- [ ] Displays for game board and player/dealer's card hands
+- [X] Displays for game board and player/dealer's card hands
 - [ ] Proper unit testing
 - [ ] Command-line arguments
 - [ ] Elaborate documentation
