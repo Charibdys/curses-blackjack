@@ -10,8 +10,6 @@
 #define FOLD    4
 #define END     5
 
-
-
 void gameLoop(pcg32_random_t *randSeed)
 {
     struct Card deck[52];

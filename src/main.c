@@ -14,8 +14,6 @@ int main(int argc, char *argv[])
     pcg32_random_t rng;
     pcg32_srandom_r(&rng, time(NULL) ^ (intptr_t)&printf, (intptr_t)&printTitle);
 
-
-
     MEVENT event;
     int choice = 0;
 

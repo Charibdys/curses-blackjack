@@ -1,12 +1,16 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#define TITLE_LINES     6   // Lines of the splash art
+#define TITLE_LINES     9   // Lines of the splash art + description/authorship lines
 #define TITLE_INDENT    5   // Buffer between the top of the window and splash art
+
+#define X_MARGIN    2 // Column offset from the left within windows
+#define Y_MARGIN    1 // Row offset from the top within windows
 
 #include <curses.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 // ASCII Art generated on https://www.patorjk.com/software/taag/
 // Using the font DOOM by Frans P. de Vries <fpv@xymph.iaf.nl>  18 Jun 1996
@@ -25,11 +29,12 @@ static char const *Title[] = {
 
 //static char *License[]{};
 
+// Use odd length choices so the menu looks nice and centered
 static char *MenuChoices[] = {
     "Start",
     "Options",
     "Load Save",
-    "Exit",
+    "Close",
 };
 
 static char *GameMenuChoices[] = {
@@ -71,6 +76,8 @@ void printCard(char suit, int value, int cardCount, bool hideFirstCard, bool isD
 void printTitle(MEVENT *event);
 
 void printMenu(WINDOW *menu, int numChoices, int highlight, char *choices[]);
+
+void printCenterMenu(WINDOW *menu, int numChoices, int highlight, int maxWidth, char *choices[]);
 
 void printBetMenu(WINDOW *menu, int numChoices, int bet, int highlight);
 

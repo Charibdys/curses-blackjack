@@ -342,11 +342,10 @@ void printTitle(MEVENT *event)
 
 void printMenu(WINDOW *menu, int numChoices, int highlight, char *choices[])
 {
-    int xMargin = 2 ;
+    int xMargin = 2;
     int yMargin = 2;
 
     for(int i = 0; i < numChoices; i++){
-
         if(highlight == i + 1){
             wattron(menu, A_REVERSE);
             mvwprintw(menu, yMargin, xMargin, "%s", choices[i]);
@@ -361,20 +360,59 @@ void printMenu(WINDOW *menu, int numChoices, int highlight, char *choices[])
     wrefresh(menu);
 }
 
+
+// Print menu to screen such that each item in choices is center justified.
+void printCenterMenu(WINDOW *menu, int numChoices, int highlight, int maxWidth, char *choices[])
+{
+    int yMargin = Y_MARGIN;
+
+    for(int i = 0; i < numChoices; i++){
+        int left_padding = (maxWidth - strlen(choices[i])) / 2;
+
+        if(highlight == i + 1){
+            wattron(menu, A_REVERSE);
+            mvwprintw(menu, yMargin, left_padding, "%s",choices[i]);
+            wattroff(menu, A_REVERSE);
+        }
+        else
+            mvwprintw(menu, yMargin, left_padding, "%s",choices[i]);
+        
+        ++yMargin;
+    }
+
+    wrefresh(menu);
+}
+
+int longestStringLength(int numChoices, char *choices[]) {
+    if(choices == NULL)
+        return -1;
+
+    int longest_length = 0;
+    
+    for(int i = 0; i < numChoices; i++){
+        int length = strlen(choices[i]);
+        if(length > longest_length)
+            longest_length = length;
+    }
+
+    return longest_length;
+}
+
 int menuLoop()
 {
-    WINDOW *menu;
     int numChoices = sizeof(MenuChoices)/sizeof(MenuChoices[0]);
-    int starty = TITLE_LINES + TITLE_INDENT;
-    int startx = (COLS - 12) / 2;
+    int menuWidth = longestStringLength(numChoices, MenuChoices) + X_MARGIN;
+
+    int starty = TITLE_LINES + TITLE_INDENT + 1; // Add another space below title
+    int startx = (COLS - menuWidth) / 2;
 
     int highlight = 1;
     int choice = 0;
     int c = 0;
 
-    menu = create_win(7, 12, starty, startx);
+    WINDOW *menu = create_win(numChoices + 2, menuWidth, starty, startx);
     keypad(menu, TRUE);
-    printMenu(menu, numChoices, highlight, MenuChoices);
+    printCenterMenu(menu, numChoices, highlight, menuWidth, MenuChoices);
 
     while(1)
     {
@@ -397,7 +435,7 @@ int menuLoop()
                 choice = highlight;
                 break;
         }
-        printMenu(menu, numChoices, highlight, MenuChoices);
+        printCenterMenu(menu, numChoices, highlight, menuWidth, MenuChoices);
         if(choice != 0)
             break;
     }
