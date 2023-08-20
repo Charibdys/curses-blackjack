@@ -39,6 +39,8 @@ void closeBets(int result, int bet, struct Dealer *dealer, struct Player *player
 
 int sumHand(struct Hand *hand);
 
+int sumObscuredHand(struct Hand *hand);
+
 void delHand(struct Hand *dealerHand, struct Hand *playerHand, struct Card *deckPtr);
 
 //void initHead(struct Card *deckPtr, struct Hand *hand);

@@ -66,7 +66,7 @@ int inGameMenuLoop();
 
 int betMenu(int currentBet, int highlight);
 
-void statsWindow(int money, int bet, int handValue, char *message);
+void statsWindow(int money, int bet, int handValue, int dealerHandValue, char *message);
 
 void alert(char *message, int height, int width, int startY, int startX);
 

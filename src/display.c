@@ -223,7 +223,7 @@ void printBetMenu(WINDOW *menu, int numChoices, int bet, int highlight)
     wrefresh(menu);
 }
 
-void statsWindow(int money, int bet, int handValue, char *message)
+void statsWindow(int money, int bet, int handValue, int dealerHandValue, char *message)
 {
     WINDOW *statsWindow;
     int width = COLS/4;
@@ -237,7 +237,10 @@ void statsWindow(int money, int bet, int handValue, char *message)
     mvwprintw(statsWindow, 2 , 2, "Bet = %d", bet);
 
     if(handValue > 0)
-        mvwprintw(statsWindow, 3 , 2, "Hand = %d", handValue);
+        mvwprintw(statsWindow, 3 , 2, "Your Hand = %d", handValue);
+
+    if(dealerHandValue > 0)
+        mvwprintw(statsWindow, 4 , 2, "Dealer Hand = %d", dealerHandValue);
 
     if(message != ""){
         wattron(statsWindow, A_REVERSE);
@@ -478,7 +481,6 @@ int menuLoop()
     }
 
     return choice;
-
 }
 
 WINDOW *create_win(int height, int width, int starty, int startx)
