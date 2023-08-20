@@ -223,7 +223,7 @@ void printBetMenu(WINDOW *menu, int numChoices, int bet, int highlight)
     wrefresh(menu);
 }
 
-void statsWindow(int money, int bet, int handValue, char *message)
+void statsWindow(int money, int bet, int handValue, int dealerHandValue, char *message)
 {
     WINDOW *statsWindow;
     int width = COLS/4;
@@ -237,7 +237,10 @@ void statsWindow(int money, int bet, int handValue, char *message)
     mvwprintw(statsWindow, 2 , 2, "Bet = %d", bet);
 
     if(handValue > 0)
-        mvwprintw(statsWindow, 3 , 2, "Hand = %d", handValue);
+        mvwprintw(statsWindow, 3 , 2, "Your Hand = %d", handValue);
+
+    if(dealerHandValue > 0)
+        mvwprintw(statsWindow, 4 , 2, "Dealer Hand = %d", dealerHandValue);
 
     if(message != ""){
         wattron(statsWindow, A_REVERSE);
@@ -249,30 +252,72 @@ void statsWindow(int money, int bet, int handValue, char *message)
     delwin(statsWindow);
 }
 
-void alert(char *message)
+/*
+    Prints an alert message with an 'OK' message to the screen.
+    If the length of the message exceeds the bounds determined by the size of
+    the alert box, then a single question mark is displayed in the box.
+
+    Max length that can fit in the box is determined by the expression:
+        (width - (X_MARGIN * 2)) * (height - ((Y_MARGIN + 1) * 2))
+    
+    Then, Max length of one line can be determined by the expression:
+        width - (X_MARGIN * 2)
+
+    Text that does not fit on one line will be word-wrapped without hypenation
+*/
+void alert(char *message, int height, int width, int startY, int startX)
 {
     WINDOW *alertBox;
 
-    int height = 7;
-    int width = 16;
-    int starty = TITLE_LINES + TITLE_INDENT;
-    int startx = (COLS - width) / 2;
-
-    int yMargin = 2;  
-
-    alertBox = create_win(height, width, starty, startx);
+    alertBox = create_win(height, width, startY, startX);
     keypad(alertBox, TRUE);
 
-    mvwprintw(alertBox, yMargin, (width/2) - (strlen(message))/2, message);
-
+    if(strlen(message) < width - (X_MARGIN) * 2){
+        mvwprintw(alertBox, Y_MARGIN, (width/2) - (strlen(message))/2, message);
+    }
+    else if(strlen(message) < (width - (X_MARGIN * 2)) * (height - ((Y_MARGIN + 1) * 2))){
+        centerJustifyPrint(alertBox, message, width - (X_MARGIN * 2));
+    }
+    else {
+        mvwprintw(alertBox, Y_MARGIN, width/2, "?");
+    }
+    
     wattron(alertBox, A_REVERSE);
-    mvwprintw(alertBox, height - 2, (width/2) - 1, "OK");
+    mvwprintw(alertBox, height - (Y_MARGIN + 1), (width/X_MARGIN) - 1, "OK");
     wattroff(alertBox, A_REVERSE);
 
     wrefresh(alertBox);
 
     if(wgetch(alertBox))
-        destroy_win(alertBox);
+        wclear(alertBox);
+}
+
+
+/* 
+    Prints characters to a given window, centering text when possible.
+    Does not hyphenate words that exceed length of line
+*/
+void centerJustifyPrint(WINDOW *window, char *string, int maxLineChars) {
+    int charsLeft = (strlen(string)); 
+
+    int row = Y_MARGIN;
+    int col = X_MARGIN;
+
+    for(int i = 0; string[i] != 0; i++){
+        if(col == maxLineChars + X_MARGIN){
+            if(charsLeft < maxLineChars){
+                col = X_MARGIN + (maxLineChars - charsLeft) / 2;
+            }
+            else {
+                col = X_MARGIN;
+            }
+            
+            row += 1;
+        }
+        mvwaddch(window, row, col, string[i]);
+        charsLeft -= 1;
+        col += 1;
+    }
 }
 
 // 1 2 3 4 5 6 7 8 9 10 11 12 13
@@ -320,13 +365,13 @@ void printCard(char suit, int value, int cardCount, bool hideFirstCard, bool isD
     wrefresh(card);
 }
 
-void printTitle(MEVENT *event)
+// Prints a bordered title screen
+void printTitle()
 {
     WINDOW *titleScreen;
     int startx = 0;
 
     titleScreen = create_win(LINES, COLS, 0, 0);
-    keypad(titleScreen, TRUE);
 
     for(int i = 0; i < (sizeof(Title)/sizeof(Title[0])); i++){
         startx = (COLS / 2) - (strlen(Title[i]) / 2);
@@ -334,25 +379,20 @@ void printTitle(MEVENT *event)
     }
 
     wrefresh(titleScreen);
-
-    /* Remain on title screen until key is pressed */
-    if(wgetch(titleScreen) || getmouse(event) == OK);
-        destroy_win(titleScreen);
 }
 
 void printMenu(WINDOW *menu, int numChoices, int highlight, char *choices[])
 {
-    int xMargin = 2;
-    int yMargin = 2;
+    int yMargin = Y_MARGIN;
 
     for(int i = 0; i < numChoices; i++){
         if(highlight == i + 1){
             wattron(menu, A_REVERSE);
-            mvwprintw(menu, yMargin, xMargin, "%s", choices[i]);
+            mvwprintw(menu, yMargin, X_MARGIN, "%s", choices[i]);
             wattroff(menu, A_REVERSE);
         }
         else
-            mvwprintw(menu, yMargin, xMargin, "%s", choices[i]);
+            mvwprintw(menu, yMargin, X_MARGIN, "%s", choices[i]);
         
         ++yMargin;
     }
@@ -441,7 +481,6 @@ int menuLoop()
     }
 
     return choice;
-
 }
 
 WINDOW *create_win(int height, int width, int starty, int startx)

@@ -34,7 +34,7 @@ void gameLoop(pcg32_random_t *randSeed)
 
         vegasShuffle(deckPtr, randSeed);
         gameBoard(dealer.limit);
-        statsWindow(player.money, bet, 0, "");
+        statsWindow(player.money, bet, 0, 0, "");
         gameChoice = gameMenuLoop();
         switch(gameChoice)
         {
@@ -48,7 +48,7 @@ void gameLoop(pcg32_random_t *randSeed)
             printHand(dealer.hand, true, true);
             printHand(player.hand, false, false);
 
-            statsWindow(player.money, bet, sumHand(player.hand), "");
+            statsWindow(player.money, bet, sumHand(player.hand), sumObscuredHand(dealer.hand), "");
 
             subGameInPlay = true;
 
@@ -59,10 +59,10 @@ void gameLoop(pcg32_random_t *randSeed)
                 case HIT:
                     appendCard(deckPtr, player.hand);
                     printHand(player.hand, false, false);
-                    statsWindow(player.money, bet, sumHand(player.hand), "");
+                    statsWindow(player.money, bet, sumHand(player.hand), sumObscuredHand(dealer.hand), "");
                     if(sumHand(player.hand) > 21){
-                        statsWindow(player.money, bet, sumHand(player.hand), "BUST");
                         dealerTurn(dealer.limit, dealer.hand, deckPtr);
+                        statsWindow(player.money, bet, sumHand(player.hand), sumHand(dealer.hand), "BUST");
                         closeBets(checkResult(dealer.hand, player.hand), bet, &dealer, &player);
                         delHand(dealer.hand, player.hand, deckPtr);
                         subGameInPlay = false;
@@ -75,16 +75,17 @@ void gameLoop(pcg32_random_t *randSeed)
                         appendCard(deckPtr, player.hand);
                         printHand(player.hand, false, false);
                         dealerTurn(dealer.limit, dealer.hand, deckPtr);
-                        statsWindow(player.money, bet, sumHand(player.hand), "");
+                        statsWindow(player.money, bet, sumHand(player.hand), sumHand(dealer.hand), "");
                     }
                     else{
-                        statsWindow(player.money, bet, sumHand(player.hand), "Not enough money");
-                        alert("Can't do that");
+                        statsWindow(player.money, bet, sumHand(player.hand), sumObscuredHand(dealer.hand), "Not enough money");
+                        alert("Can't do that", 7, 16, LINES/2, COLS/2);
                     }
                     break;
 
                 case STAND:
                     dealerTurn(dealer.limit, dealer.hand, deckPtr);
+                    statsWindow(player.money, bet, sumHand(player.hand), sumHand(dealer.hand), "");
                     break;
 
                 case FOLD:
@@ -230,6 +231,41 @@ int sumHand(struct Hand *hand)
 
     int sum = 0;
     struct Hand *temp = hand;
+
+    while(temp != NULL){
+        if(temp->card.value < 9)
+            sum += temp->card.value + 1;
+        else if(temp->card.value > 8 && temp->card.value < 13)
+            sum += 10;
+        else{
+            if((sum + 11) <= 21)
+                sum += 11;
+            else
+                sum += 1;
+        }
+
+        temp = temp->next;
+    }
+
+
+    return sum;
+}
+
+int sumObscuredHand(struct Hand *hand)
+{
+    if(hand == NULL)
+        return -1;
+
+    int sum = 0;
+    struct Hand *temp = hand;
+
+    // Skip first/hidden card
+    if(temp->next != NULL) {
+        temp = temp->next;
+    }
+    else {
+        return -1;
+    }
 
     while(temp != NULL){
         if(temp->card.value < 9)
