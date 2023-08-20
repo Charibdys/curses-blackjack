@@ -79,7 +79,7 @@ void gameLoop(pcg32_random_t *randSeed)
                     }
                     else{
                         statsWindow(player.money, bet, sumHand(player.hand), "Not enough money");
-                        alert("Can't do that");
+                        alert("Can't do that", 7, 16, LINES/2, COLS/2);
                     }
                     break;
 

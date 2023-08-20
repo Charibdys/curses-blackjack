@@ -14,16 +14,15 @@ int main(int argc, char *argv[])
     pcg32_random_t rng;
     pcg32_srandom_r(&rng, time(NULL) ^ (intptr_t)&printf, (intptr_t)&printTitle);
 
-    MEVENT event;
-    int choice = 0;
-
     // This must go near the start, else we cannot obtain LINES or COLS
     initCurses();
     
-    printTitle(&event);
-    
-    while(1)
+    int choice = 0;
+
+    while(choice != QUIT)
     {
+        refresh();
+        printTitle();
         choice = menuLoop();
         switch(choice)
         {
@@ -31,19 +30,15 @@ int main(int argc, char *argv[])
                 gameLoop(&rng);
                 break;
             case OPTIONS:
-                mvprintw(2, 1, "Choice %d has not been implemented", choice);
-                refresh();
+                alert("OPTIONS has not been implemented yet", 8, 30, TITLE_LINES + TITLE_INDENT, (COLS - 30) / 2);
                 break;
             case LOAD:
-                mvprintw(2, 1, "Choice %d has not been implemented", choice);
-                refresh();
+                alert("LOAD has not been implemented yet", 8, 30, TITLE_LINES + TITLE_INDENT, (COLS - 30) / 2);
                 break;
             case QUIT:
-                endwin();
-                return 0;
+                break;
             default:
-                mvprintw(2, 1, "Choice %d is undefined", choice);
-                refresh();
+                alert("That choice has not been implemented yet", 8, 30, TITLE_LINES + TITLE_INDENT, (COLS - 30) / 2);
                 break;
         }
     }

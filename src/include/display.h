@@ -14,7 +14,6 @@
 
 // ASCII Art generated on https://www.patorjk.com/software/taag/
 // Using the font DOOM by Frans P. de Vries <fpv@xymph.iaf.nl>  18 Jun 1996
-// TODO: Find a better way to display the title
 static char const *Title[] = {
     "_____                       ___            _",
     "/  __ \\                     |_  |          | |",
@@ -34,7 +33,7 @@ static char *MenuChoices[] = {
     "Start",
     "Options",
     "Load Save",
-    "Close",
+    "End",
 };
 
 static char *GameMenuChoices[] = {
@@ -69,11 +68,13 @@ int betMenu(int currentBet, int highlight);
 
 void statsWindow(int money, int bet, int handValue, char *message);
 
-void alert(char *message);
+void alert(char *message, int height, int width, int startY, int startX);
+
+void centerJustifyPrint(WINDOW *window, char *string, int maxLineChars);
 
 void printCard(char suit, int value, int cardCount, bool hideFirstCard, bool isDealer);
 
-void printTitle(MEVENT *event);
+void printTitle();
 
 void printMenu(WINDOW *menu, int numChoices, int highlight, char *choices[]);
 
