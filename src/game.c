@@ -35,7 +35,10 @@ void gameLoop(pcg32_random_t *randSeed)
         {
             case DEAL:
                 handleDeal(bet, &player, &dealer, deckPtr);
-                inGameLoop(bet, &player, &dealer, deckPtr);
+
+                if(!natural21(bet, &player, &dealer, deckPtr))
+                    inGameLoop(bet, &player, &dealer, deckPtr);
+                
                 break;
 
             case BET:
@@ -51,6 +54,52 @@ void gameLoop(pcg32_random_t *randSeed)
 
     refresh();
 }
+
+
+/*
+    Check intial hands for a natural 21.
+
+    Push if dealer and player both get blackjack
+    Take bet from player if delear gets blackjack
+    Or pay player 3 times the bet if player gets blackjack
+
+    Otherwise, return false
+*/
+bool natural21(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
+{
+    int dealerSum = sumHand(dealer->hand);
+    int playerSum = sumHand(player->hand);
+
+    if(dealerSum == 21 && playerSum == 21){
+        addMoney(bet, player);
+        printHand(dealer->hand, false, true);
+        alert("Push!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return true;
+    }
+    else if(dealerSum == 21) {
+        subtractMoney(bet, player);
+        printHand(dealer->hand, false, true);
+        alert("Dealer got Blackjack!", 6, 26, LINES/2 - 3, COLS/2 - 8);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return true;
+    }
+    else if (playerSum == 21) {
+        if(checkBet(bet, 3, player)){
+            addMoney(bet*3, player);
+        }
+        else{
+            addMoney(bet, player);
+        }
+
+        printHand(dealer->hand, false, true);
+        alert("Blackjack!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return true;
+    }
+
+    return false;
+} 
 
 
 // In game loop where player gets cards
@@ -98,20 +147,17 @@ void handleDeal(unsigned int bet, struct Player *player, struct Dealer *dealer, 
 
 unsigned int handleBet(unsigned int bet, struct Player *player)
 {
-    int tempMoney = player->money;
     int betMenuChoice = 0;
 
     while(betMenuChoice != 3){
         betMenuChoice = betMenu(bet, betMenuChoice);
         if(betMenuChoice == 1){
-            if(bet < 100 && tempMoney > bet){
-                player->money -= 1;
+            if(bet < 100 && player->money > bet){
                 bet += 1;
             }
         }
         else if(betMenuChoice == 2){
             if(bet > 0){
-                player->money += 1;
                 bet -= 1;
             }
         }
@@ -140,7 +186,7 @@ bool handleHit(unsigned int bet, struct Player *player, struct Dealer *dealer, s
 
 unsigned int handleDoubleDown(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
 {
-    if(bet*2 <= player->money){
+    if(checkBet(bet, 2, player)){
         bet *= 2;
         appendCard(deckPtr, player->hand);
         printHand(player->hand, false, false);
@@ -378,4 +424,43 @@ void shiftDeck(struct Card *deckPtr, int amount)
     }
 
     return;
+}
+
+bool checkBet(unsigned int bet, unsigned int multiplier, struct Player *player)
+{
+    if(multiplier == 0){
+        return false;
+    }
+
+    if (bet * multiplier < bet){
+        return false;
+    }
+
+    if(bet * multiplier > player->money){
+        return false;
+    }
+
+    return true;
+}
+
+
+void addMoney(unsigned int bet, struct Player *player)
+{
+    // UINT Wrap-around
+    if(bet + player->money < player->money){
+        alert("You have broke the bank!", 6, 30, LINES/2 - 3, COLS/2 - 15);
+    }
+
+    player->money = player->money + bet;
+}
+
+void subtractMoney(unsigned int bet, struct Player *player)
+{
+    // UINT Wrap-around
+    if(player->money - bet > player->money){
+        alert("You are bankrupt!", 6, 22, LINES/2 - 3, COLS/2 - 11);
+        return;
+    }
+
+    player->money = player->money - bet;
 }
