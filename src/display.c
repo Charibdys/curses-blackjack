@@ -32,11 +32,6 @@ void gameBoard(int dealerLimit)
     topHalf = create_win(height, width, 0, 0);
     botHalf = create_win(height, width, LINES/2, 0);
 
-    // Removes gap between top and bottom windows
-    //topHalf = create_win(height + 1, width, 0, 0);
-    //mvwaddch(botHalf, 0, 0, ACS_LTEE);
-    //mvwaddch(botHalf, 0, width - 1, ACS_RTEE);
-
     mvwprintw(topHalf, 1, (width/2) - 3, "Dealer");
     mvwprintw(topHalf, 2, (width/2) - 19, "Must draw to %d and stand on all %d's", dealerLimit, dealerLimit+1);
 

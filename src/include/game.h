@@ -25,6 +25,16 @@ struct Player{
 
 void gameLoop(pcg32_random_t *randSeed);
 
+void inGameLoop(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+void handleDeal(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+unsigned int handleBet(unsigned int bet, struct Player *player);
+
+bool handleHit(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+unsigned int handleDoubleDown(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
 struct Card drawCard(struct Card *deckPtr);
 
 void shiftDeck(struct Card *deckPtr, int amount);

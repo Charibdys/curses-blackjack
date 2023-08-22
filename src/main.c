@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
         switch(choice)
         {
             case START:
+                refresh();
                 gameLoop(&rng);
                 break;
             case OPTIONS:
