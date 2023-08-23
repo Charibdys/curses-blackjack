@@ -283,8 +283,10 @@ void alert(char *message, int height, int width, int startY, int startX)
 
     wrefresh(alertBox);
 
-    if(wgetch(alertBox))
-        wclear(alertBox);
+    // Close alert box only on Enter/Return keypress
+    while(wgetch(alertBox) != 10);
+
+    wclear(alertBox);
 }
 
 
