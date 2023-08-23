@@ -32,13 +32,17 @@ void handleDeal(unsigned int bet, struct Player *player, struct Dealer *dealer, 
 
 unsigned int handleBet(unsigned int bet, struct Player *player);
 
-bool handleHit(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+void handleHit(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
 
-unsigned int handleDoubleDown(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+bool handleBust(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+void handleDoubleDown(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
 
 struct Card drawCard(struct Card *deckPtr);
 
 void shiftDeck(struct Card *deckPtr, int amount);
+
+int handCount(struct Hand *hand);
 
 bool checkBet(unsigned int bet, unsigned int multiplier, struct Player *player);
 
@@ -52,7 +56,7 @@ void dealerTurn(int limit, struct Hand *hand, struct Card *deckPtr);
 
 int checkResult(struct Hand *dealerHand, struct Hand *playerHand);
 
-void closeBets(int result, int bet, struct Dealer *dealer, struct Player *player);
+void closeBets(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
 
 int sumHand(struct Hand *hand);
 
