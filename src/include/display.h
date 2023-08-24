@@ -47,6 +47,7 @@ static char *InGameMenuChoices[] = {
     "Double Down",
     "Stay",
     "Surrender",
+    "End",
 };
 
 static char *BetMenuChoices[] = {

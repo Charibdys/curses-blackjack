@@ -4,10 +4,11 @@
 #define BET     2
 #define EXIT    3
 
-#define HIT     1
-#define D_DOWN  2
-#define STAND   3
-#define FOLD    4
+#define HIT         1
+#define D_DOWN      2
+#define STAND       3
+#define SURRENDER   4
+#define FOLD        5
 
 void gameLoop(pcg32_random_t *randSeed)
 {
@@ -151,6 +152,12 @@ void inGameLoop(unsigned int bet, struct Player *player, struct Dealer *dealer, 
             dealerTurn(dealer->limit, dealer->hand, deckPtr);
             statsWindow(player->money, bet, sumHand(player->hand), sumHand(dealer->hand), "");
             closeBets(bet, player, dealer, deckPtr);
+            subGameInPlay = false;
+            break;
+        
+        case SURRENDER:
+            unsigned int surrenderBet = bet / 2;
+            subtractMoney(surrenderBet, player);
             subGameInPlay = false;
             break;
 
