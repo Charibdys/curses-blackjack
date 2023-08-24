@@ -15,9 +15,9 @@ Run `make all` to build the binary.
 - [X] PCG Random Number Generation
 - [X] Optimized for small terminals (80 column, 24 lines)
 - [X] Thorough card shuffling
-- [ ] Simple game rules
+- [X] Simple game rules
 	- [X] Double Down
- 	- [ ] Surrender 
+ 	- [X] Surrender 
 
 ## Attribution
 ASCII art used in the title screen was generated on www.patorjk.com/software/taag/
