@@ -13,7 +13,6 @@ struct Hand{
 };
 
 struct Dealer{
-    // TODO: Add limits
     int limit;
     struct Hand *hand;
 };
@@ -25,9 +24,31 @@ struct Player{
 
 void gameLoop(pcg32_random_t *randSeed);
 
+void inGameLoop(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+bool natural21(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+void handleDeal(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+unsigned int handleBet(unsigned int bet, struct Player *player);
+
+void handleHit(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+bool handleBust(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
+void handleDoubleDown(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
+
 struct Card drawCard(struct Card *deckPtr);
 
 void shiftDeck(struct Card *deckPtr, int amount);
+
+int handCount(struct Hand *hand);
+
+bool checkBet(unsigned int bet, unsigned int multiplier, struct Player *player);
+
+void addMoney(unsigned int bet, struct Player *player);
+
+void subtractMoney(unsigned int bet, struct Player *player);
 
 void appendCard(struct Card *deckPtr, struct Hand *hand);
 
@@ -35,7 +56,7 @@ void dealerTurn(int limit, struct Hand *hand, struct Card *deckPtr);
 
 int checkResult(struct Hand *dealerHand, struct Hand *playerHand);
 
-void closeBets(int result, int bet, struct Dealer *dealer, struct Player *player);
+void closeBets(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr);
 
 int sumHand(struct Hand *hand);
 

@@ -4,11 +4,11 @@
 #define BET     2
 #define EXIT    3
 
-#define HIT     1
-#define D_DOWN  2
-#define STAND   3
-#define FOLD    4
-#define END     5
+#define HIT         1
+#define D_DOWN      2
+#define STAND       3
+#define SURRENDER   4
+#define FOLD        5
 
 void gameLoop(pcg32_random_t *randSeed)
 {
@@ -19,18 +19,17 @@ void gameLoop(pcg32_random_t *randSeed)
     initDeck(deckPtr);
 
     bool gameInPlay = true;
-    bool subGameInPlay = true;
+    int gameChoice = 0;
 
     unsigned int bet = 0;
 
-    int gameChoice = 0;
-    int subGameChoice = 0;
-    int betMenuChoice = 0;
-
     struct Dealer dealer = {16, NULL};
-    struct Player player = {45, NULL};
+    struct Player player = {1000, NULL};
 
     while(gameInPlay){
+
+        if(bet > player.money)
+            bet = 0;
 
         vegasShuffle(deckPtr, randSeed);
         gameBoard(dealer.limit);
@@ -39,97 +38,195 @@ void gameLoop(pcg32_random_t *randSeed)
         switch(gameChoice)
         {
             case DEAL:
+                handleDeal(bet, &player, &dealer, deckPtr);
 
-            player.hand = initHead(deckPtr);
-            dealer.hand = initHead(deckPtr);
-            appendCard(deckPtr, player.hand);
-            appendCard(deckPtr, dealer.hand);
-
-            printHand(dealer.hand, true, true);
-            printHand(player.hand, false, false);
-
-            statsWindow(player.money, bet, sumHand(player.hand), sumObscuredHand(dealer.hand), "");
-
-            subGameInPlay = true;
-
-            while(subGameInPlay){
-                subGameChoice = inGameMenuLoop();
-                switch (subGameChoice)
-                {
-                case HIT:
-                    appendCard(deckPtr, player.hand);
-                    printHand(player.hand, false, false);
-                    statsWindow(player.money, bet, sumHand(player.hand), sumObscuredHand(dealer.hand), "");
-                    if(sumHand(player.hand) > 21){
-                        dealerTurn(dealer.limit, dealer.hand, deckPtr);
-                        statsWindow(player.money, bet, sumHand(player.hand), sumHand(dealer.hand), "BUST");
-                        closeBets(checkResult(dealer.hand, player.hand), bet, &dealer, &player);
-                        delHand(dealer.hand, player.hand, deckPtr);
-                        subGameInPlay = false;
-                    }
-                    break;
-
-                case D_DOWN:
-                    if(bet*2 <= player.money){
-                        bet *= 2;
-                        appendCard(deckPtr, player.hand);
-                        printHand(player.hand, false, false);
-                        dealerTurn(dealer.limit, dealer.hand, deckPtr);
-                        statsWindow(player.money, bet, sumHand(player.hand), sumHand(dealer.hand), "");
-                    }
-                    else{
-                        statsWindow(player.money, bet, sumHand(player.hand), sumObscuredHand(dealer.hand), "Not enough money");
-                        alert("Can't do that", 7, 16, LINES/2, COLS/2);
-                    }
-                    break;
-
-                case STAND:
-                    dealerTurn(dealer.limit, dealer.hand, deckPtr);
-                    statsWindow(player.money, bet, sumHand(player.hand), sumHand(dealer.hand), "");
-                    break;
-
-                case FOLD:
-                    subGameInPlay = false;
-                    break;
-
-                case END:
-                    subGameInPlay = false;
-                    gameInPlay = false;
-                    break;
-                }
-            }
-            break;
+                if(!natural21(bet, &player, &dealer, deckPtr))
+                    inGameLoop(bet, &player, &dealer, deckPtr);
+                
+                break;
 
             case BET:
-                int tempMoney = player.money;
-
-                while(betMenuChoice != 3){
-                    betMenuChoice = betMenu(bet, betMenuChoice);
-                    if(betMenuChoice == 1){
-                        if(bet < 100 && tempMoney > bet){
-                            player.money -= 1;
-                            bet += 1;
-                        }
-                    }
-                    else if(betMenuChoice == 2){
-                        if(bet > 0){
-                            player.money += 1;
-                            bet -= 1;
-                        }
-                    }
-                }
-                betMenuChoice = 0;
+                bet = handleBet(bet, &player);
                 break;
 
             case EXIT:
-            gameInPlay = false;
-            break;
+                gameInPlay = false;
+                break;
         }
         
     }
 
-
     refresh();
+}
+
+
+/*
+    Check intial hands for a natural 21.
+
+    Push if dealer and player both get blackjack
+    Take bet from player if delear gets blackjack
+    Or pay player 3 times the bet if player gets blackjack
+
+    Otherwise, return false
+*/
+bool natural21(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
+{
+    int dealerSum = sumHand(dealer->hand);
+    int playerSum = sumHand(player->hand);
+
+    if(dealerSum == 21 && playerSum == 21){
+        addMoney(bet, player);
+        printHand(dealer->hand, false, true);
+        alert("Push!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return true;
+    }
+    else if(dealerSum == 21) {
+        subtractMoney(bet, player);
+        printHand(dealer->hand, false, true);
+        alert("Dealer got Blackjack!", 6, 26, LINES/2 - 3, COLS/2 - 8);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return true;
+    }
+    else if (playerSum == 21) {
+        if(checkBet(bet, 3, player)){
+            addMoney(bet*3, player);
+        }
+        else{
+            addMoney(bet, player);
+        }
+
+        printHand(dealer->hand, false, true);
+        alert("Blackjack!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return true;
+    }
+
+    return false;
+} 
+
+
+// In game loop where player gets cards
+void inGameLoop(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
+{
+    int subGameChoice = 0;
+    bool subGameInPlay = true;
+
+    while(subGameInPlay){
+        subGameChoice = inGameMenuLoop();
+        switch(subGameChoice)
+        {
+        case HIT:
+            handleHit(bet, player, dealer, deckPtr);
+            subGameInPlay = handleBust(bet, player, dealer, deckPtr);
+            break;
+
+        case D_DOWN:
+            // Doubledown can only be selected if player hasn't hit yet.
+            if(handCount(player->hand) != 2){
+                statsWindow(player->money, bet, sumHand(player->hand), sumObscuredHand(dealer->hand), "Can't Doubledown");
+                break;
+            }
+            
+            if(!checkBet(bet, 2, player)){
+                statsWindow(player->money, bet, sumHand(player->hand), sumObscuredHand(dealer->hand), "Not enough money");
+                break;
+            }
+
+            bet *= 2;
+
+            handleDoubleDown(bet, player, dealer, deckPtr);
+
+            if(!handleBust(bet, player, dealer, deckPtr)){
+                subGameInPlay = false;
+                break;
+            }
+
+            dealerTurn(dealer->limit, dealer->hand, deckPtr);
+            statsWindow(player->money, bet, sumHand(player->hand), sumHand(dealer->hand), "");
+            closeBets(bet, player, dealer, deckPtr);
+            subGameInPlay = false;
+            break;
+
+        case STAND:
+            dealerTurn(dealer->limit, dealer->hand, deckPtr);
+            statsWindow(player->money, bet, sumHand(player->hand), sumHand(dealer->hand), "");
+            closeBets(bet, player, dealer, deckPtr);
+            subGameInPlay = false;
+            break;
+        
+        case SURRENDER:
+            unsigned int surrenderBet = bet / 2;
+            subtractMoney(surrenderBet, player);
+            subGameInPlay = false;
+            break;
+
+        case FOLD:
+            subGameInPlay = false;
+            break;
+        }
+    }
+}
+
+void handleDeal(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
+{
+    player->hand = initHead(deckPtr);
+    dealer->hand = initHead(deckPtr);
+    appendCard(deckPtr, player->hand);
+    appendCard(deckPtr, dealer->hand);
+
+    printHand(dealer->hand, true, true);
+    printHand(player->hand, false, false);
+
+    statsWindow(player->money, bet, sumHand(player->hand), sumObscuredHand(dealer->hand), "");
+}
+
+unsigned int handleBet(unsigned int bet, struct Player *player)
+{
+    int betMenuChoice = 0;
+
+    while(betMenuChoice != 3){
+        betMenuChoice = betMenu(bet, betMenuChoice);
+        if(betMenuChoice == 1){
+            if(player->money > bet){
+                bet += 5;
+            }
+        }
+        else if(betMenuChoice == 2){
+            if(bet > 0){
+                bet -= 5;
+            }
+        }
+    }
+
+    return bet;
+}
+
+void handleHit(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
+{
+    appendCard(deckPtr, player->hand);
+    printHand(player->hand, false, false);
+    statsWindow(player->money, bet, sumHand(player->hand), sumObscuredHand(dealer->hand), "");
+}
+
+void handleDoubleDown(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
+{
+    appendCard(deckPtr, player->hand);
+    printHand(player->hand, false, false);
+    statsWindow(player->money, bet, sumHand(player->hand), sumObscuredHand(dealer->hand), "");
+}
+
+bool handleBust(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
+{
+    if(sumHand(player->hand) > 21){
+        statsWindow(player->money, bet, sumHand(player->hand), sumHand(dealer->hand), "");
+        alert("BUST!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        subtractMoney(bet, player);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return false;
+    }
+
+    return true;
 }
 
 void printHand(struct Hand *hand, bool hideFirstCard, bool isDealer)
@@ -209,19 +306,32 @@ int checkResult(struct Hand *dealerHand, struct Hand *playerHand)
         return -1;
 }
 
-void closeBets(int result, int bet, struct Dealer *dealer, struct Player *player)
+void closeBets(unsigned int bet, struct Player *player, struct Dealer *dealer, struct Card *deckPtr)
 {
-    switch(result)
-    {   
-        case 1:
-            break;
-        case 0:
-            break;
-        case -1:
-            break;
+    int dealerSum = sumHand(dealer->hand);
+    int playerSum = sumHand(player->hand);
+
+    // Check for dealer bust
+    if(dealerSum > 21){
+        alert("Dealer busts!", 6, 18, LINES/2 - 3, COLS/2 - 8);
+        addMoney(bet * 2, player);
+        delHand(dealer->hand, player->hand, deckPtr);
+        return;
     }
 
-    return;
+    if(dealerSum > playerSum){
+        alert("Dealer wins!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        subtractMoney(bet, player);
+    }
+    if(dealerSum == playerSum){
+        alert("Push!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+    }
+    if(dealerSum < playerSum){
+        alert("You have won!", 6, 18, LINES/2 - 3, COLS/2 - 8);
+        addMoney(bet * 2, player);
+    }
+
+    delHand(dealer->hand, player->hand, deckPtr);
 }
 
 int sumHand(struct Hand *hand)
@@ -355,4 +465,60 @@ void shiftDeck(struct Card *deckPtr, int amount)
     }
 
     return;
+}
+
+/*
+    Returns the number of cards in the given hand
+*/
+int handCount(struct Hand *hand)
+{
+    int count = 0;
+    struct Hand *temp = hand;
+
+    while(temp != NULL){
+        count += 1;
+
+        temp = temp->next;
+    }
+
+    return count;
+}
+
+bool checkBet(unsigned int bet, unsigned int multiplier, struct Player *player)
+{
+    if(multiplier == 0){
+        return false;
+    }
+
+    if (bet * multiplier < bet){
+        return false;
+    }
+
+    if(bet * multiplier > player->money){
+        return false;
+    }
+
+    return true;
+}
+
+
+void addMoney(unsigned int bet, struct Player *player)
+{
+    // UINT Wrap-around
+    if(bet + player->money < player->money){
+        alert("You have broke the bank!", 6, 30, LINES/2 - 3, COLS/2 - 15);
+    }
+
+    player->money = player->money + bet;
+}
+
+void subtractMoney(unsigned int bet, struct Player *player)
+{
+    // UINT Wrap-around
+    if(player->money - bet > player->money){
+        alert("You are bankrupt!", 6, 22, LINES/2 - 3, COLS/2 - 11);
+        return;
+    }
+
+    player->money = player->money - bet;
 }

@@ -31,8 +31,6 @@ static char const *Title[] = {
 // Use odd length choices so the menu looks nice and centered
 static char *MenuChoices[] = {
     "Start",
-    "Options",
-    "Load Save",
     "End",
 };
 

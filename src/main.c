@@ -4,9 +4,7 @@
 #include "include/game.h"
 
 #define START   1
-#define OPTIONS 2
-#define LOAD    3
-#define QUIT    4
+#define QUIT    2
 
 int main(int argc, char *argv[])
 {
@@ -27,13 +25,8 @@ int main(int argc, char *argv[])
         switch(choice)
         {
             case START:
+                refresh();
                 gameLoop(&rng);
-                break;
-            case OPTIONS:
-                alert("OPTIONS has not been implemented yet", 8, 30, TITLE_LINES + TITLE_INDENT, (COLS - 30) / 2);
-                break;
-            case LOAD:
-                alert("LOAD has not been implemented yet", 8, 30, TITLE_LINES + TITLE_INDENT, (COLS - 30) / 2);
                 break;
             case QUIT:
                 break;
