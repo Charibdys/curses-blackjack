@@ -313,7 +313,7 @@ void closeBets(unsigned int bet, struct Player *player, struct Dealer *dealer, s
 
     // Check for dealer bust
     if(dealerSum > 21){
-        alert("Dealer busts!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        alert("Dealer busts!", 6, 18, LINES/2 - 3, COLS/2 - 8);
         addMoney(bet * 2, player);
         delHand(dealer->hand, player->hand, deckPtr);
         return;
@@ -327,7 +327,7 @@ void closeBets(unsigned int bet, struct Player *player, struct Dealer *dealer, s
         alert("Push!", 6, 16, LINES/2 - 3, COLS/2 - 8);
     }
     if(dealerSum < playerSum){
-        alert("You have won!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        alert("You have won!", 6, 18, LINES/2 - 3, COLS/2 - 8);
         addMoney(bet * 2, player);
     }
 
