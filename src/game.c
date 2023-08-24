@@ -23,9 +23,12 @@ void gameLoop(pcg32_random_t *randSeed)
     unsigned int bet = 0;
 
     struct Dealer dealer = {16, NULL};
-    struct Player player = {45, NULL};
+    struct Player player = {1000, NULL};
 
     while(gameInPlay){
+
+        if(bet > player.money)
+            bet = 0;
 
         vegasShuffle(deckPtr, randSeed);
         gameBoard(dealer.limit);
@@ -178,13 +181,13 @@ unsigned int handleBet(unsigned int bet, struct Player *player)
     while(betMenuChoice != 3){
         betMenuChoice = betMenu(bet, betMenuChoice);
         if(betMenuChoice == 1){
-            if(bet < 100 && player->money > bet){
-                bet += 1;
+            if(player->money > bet){
+                bet += 5;
             }
         }
         else if(betMenuChoice == 2){
             if(bet > 0){
-                bet -= 1;
+                bet -= 5;
             }
         }
     }
@@ -311,6 +314,7 @@ void closeBets(unsigned int bet, struct Player *player, struct Dealer *dealer, s
 
     if(dealerSum > playerSum){
         alert("Dealer wins!", 6, 16, LINES/2 - 3, COLS/2 - 8);
+        subtractMoney(bet, player);
     }
     if(dealerSum == playerSum){
         alert("Push!", 6, 16, LINES/2 - 3, COLS/2 - 8);
